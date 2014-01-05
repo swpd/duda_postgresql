@@ -215,18 +215,22 @@ postgresql_conn_t *postgresql_pool_get_conn(duda_global_t *pool_key, duda_reques
             return NULL;
         }
 
+        config = __postgresql_pool_get_config(pool_key);
+        if (!config) {
+            FREE(pool);
+            return NULL;
+        }
+
         pool->size = 0;
         pool->free_size = 0;
+        pool->config = config;
         mk_list_init(&pool->free_conns);
         mk_list_init(&pool->busy_conns);
         global->set(*pool_key, (void *) pool);
-        
-        config = __postgresql_pool_get_config(pool_key);
-        if (!config) {
-            return NULL;
-        }
-        pool->config = config;
     }
+
+    /* configuration of a pool */
+    config = pool->config;
 
     int ret;
     if (mk_list_is_empty(&pool->free_conns) == 0) {
